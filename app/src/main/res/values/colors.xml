@@ -2,4 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Pomodoro Colors -->
+    <color name="pomodoro_primary">#D32F2F</color>  <!-- Red -->
+    <color name="pomodoro_secondary">#FF5252</color> <!-- Lighter Red -->
+    <color name="break_primary">#388E3C</color>     <!-- Green -->
+    <color name="break_secondary">#4CAF50</color>   <!-- Lighter Green -->
+    
+    <!-- Neutral Colors -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="divider">#EEEEEE</color>
+    
+    <!-- Button Colors -->
+    <color name="button_control_bg">#F5F5F5</color>
+    <color name="button_control_icon">#424242</color>
 </resources>

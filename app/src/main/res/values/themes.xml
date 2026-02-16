@@ -2,8 +2,24 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.MyApplicationPMT" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/pomodoro_primary</item>
+        <item name="colorSecondary">@color/pomodoro_secondary</item>
+        <item name="android:statusBarColor">@color/background_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/background_light</item>
     </style>
 
     <style name="Theme.MyApplicationPMT" parent="Base.Theme.MyApplicationPMT" />
+    
+    <!-- Custom Text Styles -->
+    <style name="HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+    
+    <style name="TimerText" parent="HeadlineLarge">
+        <item name="android:textSize">96sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
 </resources>

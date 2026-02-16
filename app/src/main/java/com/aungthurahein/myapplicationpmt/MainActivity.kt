@@ -9,96 +9,95 @@ import android.os.CountDownTimer
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.aungthurahein.myapplicationpmt.databinding.ActivityMainBinding
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var timerText: TextView
-    private lateinit var circularProgressBar: ProgressBar
-    private lateinit var linearProgressBar: ProgressBar
-    private lateinit var streakText: TextView
-    private lateinit var taskNameInput: EditText
-    private lateinit var workTimeInput: EditText
-    private lateinit var breakTimeInput: EditText
-    private lateinit var statusText: TextView
-    private lateinit var startButton: ImageButton
-    private lateinit var pauseButton: ImageButton
-    private lateinit var resetButton: ImageButton
+    private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: SharedPreferences
+    private lateinit var dbHelper: SessionDatabaseHelper
 
     private var timer: CountDownTimer? = null
     private var isRunning = false
     private var isWorkSession = true
-    private var workSeconds = 25 * 60L
-    private var shortBreakSeconds = 5 * 60L
-    private var longBreakSeconds = 15 * 60L
-    private var breakSeconds = 5 * 60L
+    private var workSeconds = Constants.minutesToSeconds(Constants.DEFAULT_WORK_MINUTES)
+    private var shortBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
+    private var longBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_LONG_BREAK_MINUTES)
+    private var breakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
     private var workCount = 0L
     private var todaySessions = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        timerText = findViewById(R.id.timerText)
-        circularProgressBar = findViewById(R.id.progressBar)
-        linearProgressBar = findViewById(R.id.linearProgressBar)
-        streakText = findViewById(R.id.streakText)
-        taskNameInput = findViewById(R.id.taskNameInput)
-        workTimeInput = findViewById(R.id.workTimeInput)
-        breakTimeInput = findViewById(R.id.breakTimeInput)
-        statusText = findViewById(R.id.statusText)
-        startButton = findViewById(R.id.startButton)
-        pauseButton = findViewById(R.id.pauseButton)
-        resetButton = findViewById(R.id.resetButton)
-
-        prefs = getSharedPreferences("pomodoro_prefs", Context.MODE_PRIVATE)
+        setupInputFields()
+        setupButtons()
+        
+        prefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+        dbHelper = SessionDatabaseHelper(this)
         loadStreak()
         loadTaskName()
+        updateDisplay()
+    }
 
-        startButton.setOnClickListener { startTimer() }
-        pauseButton.setOnClickListener { pauseTimer() }
-        resetButton.setOnClickListener { resetTimer() }
+    private fun setupButtons() {
+        binding.startButton.setOnClickListener { startTimer() }
+        binding.pauseButton.setOnClickListener { pauseTimer() }
+        binding.resetButton.setOnClickListener { resetTimer() }
+        binding.statsButton.setOnClickListener {
+            startActivity(Intent(this, StatisticsActivity::class.java))
+        }
+        
+        // Work Presets
+        binding.presetWork15.setOnClickListener { applyWorkPreset(15L) }
+        binding.presetWork25.setOnClickListener { applyWorkPreset(25L) }
+        binding.presetWork45.setOnClickListener { applyWorkPreset(45L) }
+        binding.presetWork90.setOnClickListener { applyWorkPreset(90L) }
+        
+        // Break Presets
+        binding.presetBreakShort.setOnClickListener { applyBreakPreset(5L) }
+        binding.presetBreakLong.setOnClickListener { applyBreakPreset(15L) }
+    }
+    
+    private fun applyWorkPreset(minutes: Long) {
+        if (minutes < Constants.MIN_WORK_MINUTES || minutes > Constants.MAX_WORK_MINUTES) return
+        workSeconds = Constants.minutesToSeconds(minutes)
+        // Visual feedback
+        Toast.makeText(this, "Work time set to $minutes minutes", Toast.LENGTH_SHORT).show()
+        if (!isRunning && isWorkSession) updateDisplay()
+    }
+    
+    private fun applyBreakPreset(minutes: Long) {
+        if (minutes < Constants.MIN_BREAK_MINUTES || minutes > Constants.MAX_BREAK_MINUTES) return
+        shortBreakSeconds = Constants.minutesToSeconds(minutes)
+        // Visual feedback
+        Toast.makeText(this, "Break time set to $minutes minutes", Toast.LENGTH_SHORT).show()
+        
+        if (workCount % Constants.SESSIONS_FOR_LONG_BREAK != 0L) {
+            breakSeconds = shortBreakSeconds
+        }
+        if (!isRunning && !isWorkSession) {
+             updateTimer(breakSeconds)
+             binding.linearProgressBar.max = breakSeconds.toInt()
+             binding.linearProgressBar.progress = 0
+        }
+        updateSettingsSummary()
+    }
 
-        taskNameInput.addTextChangedListener(object : TextWatcher {
+    private fun setupInputFields() {
+        binding.taskNameInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 saveTaskName(s.toString())
             }
         })
-
-        workTimeInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                updateWorkTime()
-            }
-        })
-
-        breakTimeInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                updateBreakTime()
-            }
-        })
-
-        workTimeInput.setOnEditorActionListener { _, _, _ ->
-            updateWorkTime()
-            false
-        }
-        breakTimeInput.setOnEditorActionListener { _, _, _ ->
-            updateBreakTime()
-            false
-        }
-
-        updateDisplay()
     }
 
     override fun onResume() {
@@ -107,9 +106,9 @@ class MainActivity : AppCompatActivity() {
         if (!isRunning && !isWorkSession) {
             isWorkSession = true
             updateDisplay()
-            statusText.text = "Ready for work!"
-            startButton.visibility = View.VISIBLE
-            pauseButton.visibility = View.GONE
+            binding.statusText.text = "Ready for work!"
+            binding.startButton.visibility = View.VISIBLE
+            binding.pauseButton.visibility = View.GONE
             Toast.makeText(this, "Back to work mode!", Toast.LENGTH_SHORT).show()
         }
     }
@@ -117,43 +116,50 @@ class MainActivity : AppCompatActivity() {
     private fun startTimer() {
         if (isRunning) return
         val totalSeconds = if (isWorkSession) workSeconds else breakSeconds
-        circularProgressBar.max = totalSeconds.toInt()
-        linearProgressBar.max = totalSeconds.toInt()
-        circularProgressBar.progress = 0
-        linearProgressBar.progress = 0
+        binding.linearProgressBar.max = totalSeconds.toInt()
+        binding.linearProgressBar.progress = 0
         timer = object : CountDownTimer(totalSeconds * 1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = millisUntilFinished / 1000
                 updateTimer(secondsLeft)
                 val progress = (totalSeconds - secondsLeft).toInt()
-                circularProgressBar.progress = progress
-                linearProgressBar.progress = progress
+                binding.linearProgressBar.progress = progress
             }
 
             override fun onFinish() {
                 isRunning = false
-                startButton.visibility = View.VISIBLE
-                pauseButton.visibility = View.GONE
-                timerText.text = "00:00"
-                circularProgressBar.progress = circularProgressBar.max
-                linearProgressBar.progress = linearProgressBar.max
+                binding.startButton.visibility = View.VISIBLE
+                binding.pauseButton.visibility = View.GONE
+                binding.timerText.text = "00:00"
+                binding.linearProgressBar.progress = binding.linearProgressBar.max
+
 
                 if (isWorkSession) {
                     workCount++
                     todaySessions++
                     updateStreakDisplay()
                     saveStreak()
+
+                    val taskName = binding.taskNameInput.text.toString().trim()
+                    val durationMinutes = (workSeconds / 60).toInt()
+                    val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    dbHelper.insertSession(
+                        SessionRecord(
+                            date = today,
+                            taskName = taskName.ifEmpty { "Focus Session" },
+                            durationMinutes = durationMinutes
+                        )
+                    )
                 }
 
                 isWorkSession = !isWorkSession
-
                 if (!isWorkSession) {
-                    breakSeconds = if (workCount % 4 == 0L) longBreakSeconds else shortBreakSeconds
+                    breakSeconds = if (workCount % Constants.SESSIONS_FOR_LONG_BREAK == 0L) longBreakSeconds else shortBreakSeconds
                 }
 
                 val sessionType = if (isWorkSession) "Work" else "Break"
-                val isLongBreak = !isWorkSession && (workCount % 4 == 0L)
-                statusText.text = "${if (isLongBreak) "Long " else ""}$sessionType time! Take a ${if (isWorkSession) "break" else "victory lap"}."
+                val isLongBreak = !isWorkSession && (workCount % Constants.SESSIONS_FOR_LONG_BREAK == 0L)
+                binding.statusText.text = "${if (isLongBreak) "Long " else ""}$sessionType time! Take a ${if (isWorkSession) "break" else "victory lap"}."
                 Toast.makeText(this@MainActivity, "Time's up! ${if (isLongBreak) "Long " else ""}$sessionType incoming.", Toast.LENGTH_LONG).show()
 
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -170,17 +176,17 @@ class MainActivity : AppCompatActivity() {
         }.start()
 
         isRunning = true
-        startButton.visibility = View.GONE
-        pauseButton.visibility = View.VISIBLE
-        statusText.text = if (isWorkSession) "Crush that work!" else "Chill out."
+        binding.startButton.visibility = View.GONE
+        binding.pauseButton.visibility = View.VISIBLE
+        binding.statusText.text = if (isWorkSession) "Crush that work!" else "Chill out."
     }
 
     private fun pauseTimer() {
         timer?.cancel()
         isRunning = false
-        startButton.visibility = View.VISIBLE
-        pauseButton.visibility = View.GONE
-        statusText.text = if (isWorkSession) "Work paused. Back at it?" else "Break paused. You do you."
+        binding.startButton.visibility = View.VISIBLE
+        binding.pauseButton.visibility = View.GONE
+        binding.statusText.text = if (isWorkSession) "Work paused. Back at it?" else "Break paused. You do you."
     }
 
     private fun resetTimer() {
@@ -188,67 +194,58 @@ class MainActivity : AppCompatActivity() {
         isRunning = false
         isWorkSession = true
         workCount = 0L
-        startButton.visibility = View.VISIBLE
-        pauseButton.visibility = View.GONE
+        binding.startButton.visibility = View.VISIBLE
+        binding.pauseButton.visibility = View.GONE
         updateDisplay()
-        statusText.text = "Ready for work!"
+        binding.statusText.text = "Ready for work!"
     }
 
     private fun updateTimer(seconds: Long) {
         val mins = seconds / 60
         val secs = seconds % 60
-        timerText.text = String.format("%02d:%02d", mins, secs)
+        binding.timerText.text = String.format("%02d:%02d", mins, secs)
     }
 
     private fun updateDisplay() {
         updateTimer(workSeconds)
-        circularProgressBar.max = workSeconds.toInt()
-        linearProgressBar.max = workSeconds.toInt()
-        circularProgressBar.progress = 0
-        linearProgressBar.progress = 0
+        binding.linearProgressBar.max = workSeconds.toInt()
+        binding.linearProgressBar.progress = 0
+        updateSettingsSummary()
     }
 
-    private fun updateWorkTime() {
-        val newMins = workTimeInput.text.toString().toLongOrNull() ?: 25L
-        workSeconds = newMins * 60L
-        if (!isRunning) updateDisplay()
-    }
-
-    private fun updateBreakTime() {
-        val newMins = breakTimeInput.text.toString().toLongOrNull() ?: 5L
-        shortBreakSeconds = newMins * 60L
-        if (workCount % 4 != 0L) {
-            breakSeconds = shortBreakSeconds
-        }
+    private fun updateSettingsSummary() {
+        val workMins = workSeconds / 60
+        val breakMins = shortBreakSeconds / 60
+        binding.statusText.text = "Work: ${workMins}m • Break: ${breakMins}m"
     }
 
     private fun loadStreak() {
-        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
-        val savedDate = prefs.getString("last_date", "")
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val savedDate = prefs.getString(Constants.KEY_LAST_DATE, "")
         if (savedDate != today) {
             todaySessions = 0
-            prefs.edit().putString("last_date", today).apply()
+            prefs.edit().putString(Constants.KEY_LAST_DATE, today).apply()
         } else {
-            todaySessions = prefs.getInt("sessions_today", 0)
+            todaySessions = prefs.getInt(Constants.KEY_SESSIONS_TODAY, 0)
         }
         updateStreakDisplay()
     }
 
     private fun updateStreakDisplay() {
-        streakText.text = "Sessions today: $todaySessions"
+        binding.streakText.text = "Sessions today: $todaySessions"
     }
 
     private fun saveStreak() {
-        prefs.edit().putInt("sessions_today", todaySessions).apply()
+        prefs.edit().putInt(Constants.KEY_SESSIONS_TODAY, todaySessions).apply()
     }
 
     private fun saveTaskName(taskName: String) {
-        prefs.edit().putString("task_name", taskName).apply()
+        prefs.edit().putString(Constants.KEY_TASK_NAME, taskName).apply()
     }
 
     private fun loadTaskName() {
-        val taskName = prefs.getString("task_name", "")
-        taskNameInput.setText(taskName)
+        val taskName = prefs.getString(Constants.KEY_TASK_NAME, "")
+        binding.taskNameInput.setText(taskName)
     }
 
     override fun onDestroy() {

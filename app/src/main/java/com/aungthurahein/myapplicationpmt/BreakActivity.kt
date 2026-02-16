@@ -3,27 +3,23 @@ package com.aungthurahein.myapplicationpmt
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.aungthurahein.myapplicationpmt.databinding.ActivityBreakBinding
 
 class BreakActivity : AppCompatActivity() {
 
-    private lateinit var breakTimerText: TextView
+    private lateinit var binding: ActivityBreakBinding
     private var breakTimer: CountDownTimer? = null
-    private var breakSeconds: Long = 5 * 60L
+    private var breakSeconds: Long = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_break)
+        binding = ActivityBreakBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val breakMessage: TextView = findViewById(R.id.breakMessage)
-        breakTimerText = findViewById(R.id.breakTimerText)
+        breakSeconds = intent.getLongExtra("break_seconds", Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES))
 
-        breakSeconds = intent.getLongExtra("break_seconds", 5 * 60L)
-
-        val backToWorkButton: Button = findViewById(R.id.backToWorkButton)
-        backToWorkButton.setOnClickListener {
+        binding.backToWorkButton.setOnClickListener {
             finish()  // Manual return triggers Main's onResume reset
         }
 
@@ -31,17 +27,17 @@ class BreakActivity : AppCompatActivity() {
     }
 
     private fun startBreakTimer() {
-        breakTimerText.visibility = View.VISIBLE
+        binding.breakTimerText.visibility = View.VISIBLE
         breakTimer = object : CountDownTimer(breakSeconds * 1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = millisUntilFinished / 1000
                 val mins = secondsLeft / 60
                 val secs = secondsLeft % 60
-                breakTimerText.text = String.format("%02d:%02d", mins, secs)
+                binding.breakTimerText.text = String.format("%02d:%02d", mins, secs)
             }
 
             override fun onFinish() {
-                breakTimerText.text = "00:00"
+                binding.breakTimerText.text = "00:00"
                 finish()  // Auto-return to Main, which resets to work via onResume
             }
         }.start()
