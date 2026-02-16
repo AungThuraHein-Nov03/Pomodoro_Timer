@@ -114,7 +114,7 @@ This is the home screen you see when you open the app.
   - **Statistics** (right) — opens the Statistics screen
 
 **How a session works:**
-1. (Optional) Type what you're working on in the task input
+1. Type what you're working on in the task input (Optional but highly recommended)
 2. Tap a study time preset if you want something other than 25 minutes
 3. Tap a break time preset if you want something other than 5 minutes
 4. Press **Play** to start the countdown
@@ -163,7 +163,6 @@ Access this screen by tapping the **chart icon** (bottom-right) on the Main Time
   - **Date** — formatted as "MMM dd" (e.g. "Feb 16")
   - **Time** — formatted as "hh:mm a" (e.g. "02:30 PM")
   - **Task** — the task name you entered (or "Focus Session" if left blank)
-- **Empty state**: if no sessions exist, a message reads "No sessions yet. Complete a focus session to see your stats!"
 
 **Navigation:** Press the back arrow or the device back button to return to the Main Timer.
 
