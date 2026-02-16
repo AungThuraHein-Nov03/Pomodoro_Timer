@@ -42,6 +42,7 @@
         app:layout_constraintEnd_toEndOf="parent">
         
         <ImageView
+            android:id="@+id/checkIcon"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:src="@drawable/ic_check_circle"
@@ -71,47 +72,82 @@
         app:layout_constraintTop_toBottomOf="@+id/statusContainer" />
 
     <!-- Minimalist Progress Line -->
+
+    <!-- Status / Quote Area -->
     <ProgressBar
         android:id="@+id/linearProgressBar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="4dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="12dp"
         android:max="100"
         android:progress="0"
         android:progressDrawable="@drawable/progress_drawable_rounded"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/timerText"
-        app:layout_constraintWidth_percent="0.6"/>
-        
-    <!-- Status Label (Work/Break) -->
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="wrap_content"
+        app:layout_constraintWidth_percent="0.6" />
+
+    <LinearLayout
+        android:id="@+id/statusQuoteContainer"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Ready to focus?"
-        android:textSize="16sp"
-        android:textColor="@color/text_secondary"
-        android:letterSpacing="0.02"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearProgressBar" />
+        app:layout_constraintTop_toBottomOf="@+id/linearProgressBar">
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ready to focus?"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:letterSpacing="0.02"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/quoteText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:lineSpacingExtra="3dp"
+            tools:text="\u201CFocus on being productive instead of busy.\u201D" />
+
+        <TextView
+            android:id="@+id/quoteAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"
+            tools:text="\u2014 Tim Ferriss" />
+    </LinearLayout>
 
     <!-- Task Input (Modern Card) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/taskCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:cardBackgroundColor="#F0F0F0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/statusText">
-        
+        app:layout_constraintTop_toBottomOf="@+id/statusQuoteContainer"
+        app:layout_constraintBottom_toTopOf="@+id/presetsContainer"
+        app:layout_constraintVertical_bias="0.0">
+
         <EditText
             android:id="@+id/taskNameInput"
             android:layout_width="match_parent"
@@ -128,6 +164,8 @@
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint" />
     </androidx.cardview.widget.CardView>
+
+
 
     <!-- Main Controls (FAB-like) -->
     <LinearLayout
@@ -197,11 +235,12 @@
             app:tint="@color/text_secondary" />
 
     </LinearLayout>
-    
+
     <!-- Presets & Settings -->
 
     <!-- Hidden inputs for logic compatibility -->
     <LinearLayout
+        android:id="@+id/presetsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
@@ -219,7 +258,7 @@
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.2"
             android:text="STUDY TIME"
-            android:textColor="@color/text_hint"
+            android:textColor="@color/black"
             android:textSize="10sp" />
 
         <HorizontalScrollView
@@ -297,7 +336,7 @@
             android:layout_marginBottom="8dp"
             android:letterSpacing="0.2"
             android:text="BREAK TIME"
-            android:textColor="@color/text_hint"
+            android:textColor="@color/black"
             android:textSize="10sp" />
 
         <LinearLayout

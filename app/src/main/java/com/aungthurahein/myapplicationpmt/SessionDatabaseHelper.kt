@@ -51,20 +51,18 @@ class SessionDatabaseHelper(context: Context) :
 
     fun getTotalWorkMinutes(): Int {
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT COALESCE(SUM($COL_DURATION), 0) FROM $TABLE_SESSIONS", null)
-        cursor.moveToFirst()
-        val total = cursor.getInt(0)
-        cursor.close()
-        return total
+        return db.rawQuery("SELECT COALESCE(SUM($COL_DURATION), 0) FROM $TABLE_SESSIONS", null).use { cursor ->
+            cursor.moveToFirst()
+            cursor.getInt(0)
+        }
     }
 
     fun getTotalSessions(): Int {
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_SESSIONS", null)
-        cursor.moveToFirst()
-        val count = cursor.getInt(0)
-        cursor.close()
-        return count
+        return db.rawQuery("SELECT COUNT(*) FROM $TABLE_SESSIONS", null).use { cursor ->
+            cursor.moveToFirst()
+            cursor.getInt(0)
+        }
     }
 
     fun getDailyMinutes(days: Int): List<Pair<String, Int>> {
@@ -74,20 +72,19 @@ class SessionDatabaseHelper(context: Context) :
         val dateFormat = DateTimeFormatter.ISO_LOCAL_DATE
         val displayFormat = DateTimeFormatter.ofPattern("MM/dd")
 
-        val cursor = db.rawQuery(
+        val dataMap = mutableMapOf<String, Int>()
+        db.rawQuery(
             """SELECT $COL_DATE, SUM($COL_DURATION) as total
                FROM $TABLE_SESSIONS
                WHERE $COL_DATE >= ?
                GROUP BY $COL_DATE
                ORDER BY $COL_DATE ASC""",
             arrayOf(startDate.format(dateFormat))
-        )
-
-        val dataMap = mutableMapOf<String, Int>()
-        while (cursor.moveToNext()) {
-            dataMap[cursor.getString(0)] = cursor.getInt(1)
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                dataMap[cursor.getString(0)] = cursor.getInt(1)
+            }
         }
-        cursor.close()
 
         val result = mutableListOf<Pair<String, Int>>()
         for (i in 0 until days) {
@@ -101,16 +98,16 @@ class SessionDatabaseHelper(context: Context) :
 
     fun getBestStreakDays(): Int {
         val db = readableDatabase
-        val cursor = db.rawQuery(
+        val dates = db.rawQuery(
             "SELECT DISTINCT $COL_DATE FROM $TABLE_SESSIONS ORDER BY $COL_DATE ASC",
             null
-        )
-
-        val dates = mutableListOf<LocalDate>()
-        while (cursor.moveToNext()) {
-            dates.add(LocalDate.parse(cursor.getString(0)))
+        ).use { cursor ->
+            val list = mutableListOf<LocalDate>()
+            while (cursor.moveToNext()) {
+                list.add(LocalDate.parse(cursor.getString(0)))
+            }
+            list
         }
-        cursor.close()
 
         if (dates.isEmpty()) return 0
 
@@ -129,16 +126,16 @@ class SessionDatabaseHelper(context: Context) :
 
     fun getCurrentStreak(): Int {
         val db = readableDatabase
-        val cursor = db.rawQuery(
+        val dates = db.rawQuery(
             "SELECT DISTINCT $COL_DATE FROM $TABLE_SESSIONS ORDER BY $COL_DATE DESC",
             null
-        )
-
-        val dates = mutableListOf<LocalDate>()
-        while (cursor.moveToNext()) {
-            dates.add(LocalDate.parse(cursor.getString(0)))
+        ).use { cursor ->
+            val list = mutableListOf<LocalDate>()
+            while (cursor.moveToNext()) {
+                list.add(LocalDate.parse(cursor.getString(0)))
+            }
+            list
         }
-        cursor.close()
 
         if (dates.isEmpty()) return 0
 
@@ -158,28 +155,27 @@ class SessionDatabaseHelper(context: Context) :
 
     fun getRecentSessions(limit: Int = 20): List<SessionRecord> {
         val db = readableDatabase
-        val cursor = db.rawQuery(
+        return db.rawQuery(
             """SELECT $COL_ID, $COL_DATE, $COL_TASK_NAME, $COL_DURATION, $COL_TIMESTAMP
                FROM $TABLE_SESSIONS
                ORDER BY $COL_TIMESTAMP DESC
                LIMIT ?""",
             arrayOf(limit.toString())
-        )
-
-        val sessions = mutableListOf<SessionRecord>()
-        while (cursor.moveToNext()) {
-            sessions.add(
-                SessionRecord(
-                    id = cursor.getLong(0),
-                    date = cursor.getString(1),
-                    taskName = cursor.getString(2),
-                    durationMinutes = cursor.getInt(3),
-                    timestamp = cursor.getLong(4)
+        ).use { cursor ->
+            val sessions = mutableListOf<SessionRecord>()
+            while (cursor.moveToNext()) {
+                sessions.add(
+                    SessionRecord(
+                        id = cursor.getLong(0),
+                        date = cursor.getString(1),
+                        taskName = cursor.getString(2),
+                        durationMinutes = cursor.getInt(3),
+                        timestamp = cursor.getLong(4)
+                    )
                 )
-            )
+            }
+            sessions
         }
-        cursor.close()
-        return sessions
     }
 
     fun getAverageDailyMinutes(days: Int = 7): Int {

@@ -1,4 +1,4 @@
-# MyApplicationPMT — Pomodoro Timer
+# CSX4109 Term Project — Pomodoro Timer
 
 A productivity-focused Pomodoro Timer Android application built with Kotlin. Features customizable work/break presets, a dedicated break screen, and a full Statistics dashboard with charts and task history.
 
@@ -30,6 +30,17 @@ A productivity-focused Pomodoro Timer Android application built with Kotlin. Fea
   - Average daily focus time (last 7 days)
   - Bar chart showing daily productivity over the last 7 days
   - Completed tasks table (most recent 8) with date, time, and task name
+
+- **Motivational Quotes**
+  - 25 curated productivity quotes displayed during work sessions and breaks
+  - No-repeat logic ensures you don't see the same quote twice in a row
+  - Quotes replace the status text while the timer is running
+
+- **Safety & Polish**
+  - Confirmation dialog before resetting an active timer (prevents accidental loss)
+  - Preset buttons are disabled while the timer is running (prevents accidental changes)
+  - Portrait orientation locked on all screens
+  - Forced light theme to prevent dark-mode rendering issues
 
 - **Notifications**
   - Sound notification when a session completes
@@ -103,13 +114,13 @@ This is the home screen you see when you open the app.
 - **Session counter** pill showing how many sessions you've done today (e.g. "2 sessions today")
 - **Timer display** — large MM:SS countdown
 - **Progress bar** — thin horizontal bar showing elapsed progress
-- **Status text** — shows current configuration (e.g. "Work: 25m • Break: 5m") or motivational messages while running
+- **Status / Quote area** — shows current configuration (e.g. "Work: 25m • Break: 5m") when idle, or a random motivational quote while the timer is running
 - **Task input** — card with "What are you working on?" placeholder; type your current task here
 - **Preset buttons** — two rows:
   - **STUDY TIME**: 15m, 25m, 45m, 90m (tap to change work duration)
   - **BREAK TIME**: 5m, 15m (tap to change break duration)
 - **Control buttons** — bottom row with three buttons:
-  - **Reset** (left) — resets timer and session count back to the start
+  - **Reset** (left) — resets timer and session count (shows a confirmation dialog if a session is active)
   - **Play/Pause** (center, large) — starts or pauses the countdown
   - **Statistics** (right) — opens the Statistics screen
 
@@ -118,7 +129,8 @@ This is the home screen you see when you open the app.
 2. Tap a study time preset if you want something other than 25 minutes
 3. Tap a break time preset if you want something other than 5 minutes
 4. Press **Play** to start the countdown
-5. The status text changes to "Crush that work!" while running
+5. A motivational quote appears in place of the status text while running
+   - Preset buttons become disabled to prevent accidental changes
 6. When the timer hits 00:00:
    - A sound plays
    - The session is saved to the database (with your task name, date, and duration)
@@ -128,7 +140,7 @@ This is the home screen you see when you open the app.
 
 **Controls during a session:**
 - **Pause**: pauses the countdown; press Play to resume from where you left off
-- **Reset**: cancels the current session entirely, resets counter, returns to "Ready for work!" state
+- **Reset**: shows a confirmation dialog if the timer is active; cancels the current session entirely, resets counter, and returns to "Ready for work!" state
 
 ### Screen 2: Break Screen (BreakActivity)
 
@@ -136,6 +148,7 @@ This screen appears automatically after a work session finishes.
 
 **Layout:**
 - Green background with "Well done! Take a well earned break." message
+- A motivational quote displayed below the break message
 - Break countdown timer (MM:SS format) showing the remaining break time
 - **"Back to Work"** button at the bottom
 
@@ -189,6 +202,7 @@ MyApplicationPMT/
 │   │   │   ├── SessionDatabaseHelper.kt   # SQLite database helper
 │   │   │   ├── SessionRecord.kt           # Data class for session entries
 │   │   │   ├── BarChartView.kt            # Custom bar chart (Canvas)
+│   │   │   ├── MotivationalQuotes.kt      # 25 curated quotes with no-repeat logic
 │   │   │   └── Constants.kt              # App-wide constants & defaults
 │   │   ├── res/
 │   │   │   ├── layout/

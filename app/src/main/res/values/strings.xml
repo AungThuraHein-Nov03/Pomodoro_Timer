@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">My Application PMT</string>
+
+    <!-- Timer States -->
+    <string name="ready_for_work">Ready for work!</string>
+    <string name="back_to_work_mode">Back to work mode!</string>
+    <string name="work_in_progress">Crush that work!</string>
+    <string name="break_in_progress">Chill out.</string>
+    <string name="work_paused">Work paused. Back at it?</string>
+    <string name="break_paused">Break paused. You do you.</string>
+    <string name="timer_zero">00:00</string>
+
+    <!-- Presets -->
+    <string name="work_time_set">Work time set to %d minutes</string>
+    <string name="break_time_set">Break time set to %d minutes</string>
+
+    <!-- Settings Summary -->
+    <string name="settings_summary">Work: %1$dm • Break: %2$dm</string>
+
+    <!-- Sessions -->
+    <string name="sessions_today">Sessions today: %d</string>
+    <string name="default_task_name">Focus Session</string>
+
+    <!-- Break -->
+    <string name="break_message">Well done! Take a well earned break.</string>
 </resources>

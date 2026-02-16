@@ -10,6 +10,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.aungthurahein.myapplicationpmt.databinding.ActivityMainBinding
 import java.time.LocalDate
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var shortBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
     private var longBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_LONG_BREAK_MINUTES)
     private var breakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
+    private var remainingSeconds = 0L
     private var workCount = 0L
     private var todaySessions = 0
 
@@ -44,12 +46,24 @@ class MainActivity : AppCompatActivity() {
         loadStreak()
         loadTaskName()
         updateDisplay()
+        showRandomQuote()
     }
 
     private fun setupButtons() {
         binding.startButton.setOnClickListener { startTimer() }
         binding.pauseButton.setOnClickListener { pauseTimer() }
-        binding.resetButton.setOnClickListener { resetTimer() }
+        binding.resetButton.setOnClickListener {
+            if (isRunning || remainingSeconds > 0) {
+                AlertDialog.Builder(this)
+                    .setTitle("Reset Timer?")
+                    .setMessage("Your current session will be lost.")
+                    .setPositiveButton("Reset") { _, _ -> resetTimer() }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            } else {
+                resetTimer()
+            }
+        }
         binding.statsButton.setOnClickListener {
             startActivity(Intent(this, StatisticsActivity::class.java))
         }
@@ -68,16 +82,14 @@ class MainActivity : AppCompatActivity() {
     private fun applyWorkPreset(minutes: Long) {
         if (minutes < Constants.MIN_WORK_MINUTES || minutes > Constants.MAX_WORK_MINUTES) return
         workSeconds = Constants.minutesToSeconds(minutes)
-        // Visual feedback
-        Toast.makeText(this, "Work time set to $minutes minutes", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.work_time_set, minutes.toInt()), Toast.LENGTH_SHORT).show()
         if (!isRunning && isWorkSession) updateDisplay()
     }
     
     private fun applyBreakPreset(minutes: Long) {
         if (minutes < Constants.MIN_BREAK_MINUTES || minutes > Constants.MAX_BREAK_MINUTES) return
         shortBreakSeconds = Constants.minutesToSeconds(minutes)
-        // Visual feedback
-        Toast.makeText(this, "Break time set to $minutes minutes", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.break_time_set, minutes.toInt()), Toast.LENGTH_SHORT).show()
         
         if (workCount % Constants.SESSIONS_FOR_LONG_BREAK != 0L) {
             breakSeconds = shortBreakSeconds
@@ -106,21 +118,23 @@ class MainActivity : AppCompatActivity() {
         if (!isRunning && !isWorkSession) {
             isWorkSession = true
             updateDisplay()
-            binding.statusText.text = "Ready for work!"
+            showRandomQuote()
             binding.startButton.visibility = View.VISIBLE
             binding.pauseButton.visibility = View.GONE
-            Toast.makeText(this, "Back to work mode!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.back_to_work_mode), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun startTimer() {
         if (isRunning) return
         val totalSeconds = if (isWorkSession) workSeconds else breakSeconds
+        val startFrom = if (remainingSeconds > 0) remainingSeconds else totalSeconds
         binding.linearProgressBar.max = totalSeconds.toInt()
-        binding.linearProgressBar.progress = 0
-        timer = object : CountDownTimer(totalSeconds * 1000, 1000) {
+        binding.linearProgressBar.progress = (totalSeconds - startFrom).toInt()
+        timer = object : CountDownTimer(startFrom * 1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = millisUntilFinished / 1000
+                remainingSeconds = secondsLeft
                 updateTimer(secondsLeft)
                 val progress = (totalSeconds - secondsLeft).toInt()
                 binding.linearProgressBar.progress = progress
@@ -128,11 +142,12 @@ class MainActivity : AppCompatActivity() {
 
             override fun onFinish() {
                 isRunning = false
+                remainingSeconds = 0
                 binding.startButton.visibility = View.VISIBLE
                 binding.pauseButton.visibility = View.GONE
-                binding.timerText.text = "00:00"
+                setPresetsEnabled(true)
+                binding.timerText.text = getString(R.string.timer_zero)
                 binding.linearProgressBar.progress = binding.linearProgressBar.max
-
 
                 if (isWorkSession) {
                     workCount++
@@ -146,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                     dbHelper.insertSession(
                         SessionRecord(
                             date = today,
-                            taskName = taskName.ifEmpty { "Focus Session" },
+                            taskName = taskName.ifEmpty { getString(R.string.default_task_name) },
                             durationMinutes = durationMinutes
                         )
                     )
@@ -159,12 +174,14 @@ class MainActivity : AppCompatActivity() {
 
                 val sessionType = if (isWorkSession) "Work" else "Break"
                 val isLongBreak = !isWorkSession && (workCount % Constants.SESSIONS_FOR_LONG_BREAK == 0L)
-                binding.statusText.text = "${if (isLongBreak) "Long " else ""}$sessionType time! Take a ${if (isWorkSession) "break" else "victory lap"}."
+                showStatus("${if (isLongBreak) "Long " else ""}$sessionType time! Take a ${if (isWorkSession) "break" else "victory lap"}.")
                 Toast.makeText(this@MainActivity, "Time's up! ${if (isLongBreak) "Long " else ""}$sessionType incoming.", Toast.LENGTH_LONG).show()
 
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                 val ringtone = RingtoneManager.getRingtone(this@MainActivity, notification)
                 ringtone?.play()
+
+                showRandomQuote()
 
                 if (!isWorkSession) {
                     val intent = Intent(this@MainActivity, BreakActivity::class.java)
@@ -178,7 +195,8 @@ class MainActivity : AppCompatActivity() {
         isRunning = true
         binding.startButton.visibility = View.GONE
         binding.pauseButton.visibility = View.VISIBLE
-        binding.statusText.text = if (isWorkSession) "Crush that work!" else "Chill out."
+        setPresetsEnabled(false)
+        showStatus(if (isWorkSession) getString(R.string.work_in_progress) else getString(R.string.break_in_progress))
     }
 
     private fun pauseTimer() {
@@ -186,18 +204,37 @@ class MainActivity : AppCompatActivity() {
         isRunning = false
         binding.startButton.visibility = View.VISIBLE
         binding.pauseButton.visibility = View.GONE
-        binding.statusText.text = if (isWorkSession) "Work paused. Back at it?" else "Break paused. You do you."
+        setPresetsEnabled(true)
+        showStatus(if (isWorkSession) getString(R.string.work_paused) else getString(R.string.break_paused))
     }
 
     private fun resetTimer() {
         timer?.cancel()
         isRunning = false
+        remainingSeconds = 0
         isWorkSession = true
         workCount = 0L
         binding.startButton.visibility = View.VISIBLE
         binding.pauseButton.visibility = View.GONE
+        setPresetsEnabled(true)
         updateDisplay()
-        binding.statusText.text = "Ready for work!"
+        showRandomQuote()
+    }
+
+    private fun setPresetsEnabled(enabled: Boolean) {
+        val alpha = if (enabled) 1.0f else 0.4f
+        binding.presetWork15.isEnabled = enabled
+        binding.presetWork25.isEnabled = enabled
+        binding.presetWork45.isEnabled = enabled
+        binding.presetWork90.isEnabled = enabled
+        binding.presetBreakShort.isEnabled = enabled
+        binding.presetBreakLong.isEnabled = enabled
+        binding.presetWork15.alpha = alpha
+        binding.presetWork25.alpha = alpha
+        binding.presetWork45.alpha = alpha
+        binding.presetWork90.alpha = alpha
+        binding.presetBreakShort.alpha = alpha
+        binding.presetBreakLong.alpha = alpha
     }
 
     private fun updateTimer(seconds: Long) {
@@ -216,7 +253,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateSettingsSummary() {
         val workMins = workSeconds / 60
         val breakMins = shortBreakSeconds / 60
-        binding.statusText.text = "Work: ${workMins}m • Break: ${breakMins}m"
+        showStatus(getString(R.string.settings_summary, workMins, breakMins))
     }
 
     private fun loadStreak() {
@@ -232,7 +269,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateStreakDisplay() {
-        binding.streakText.text = "Sessions today: $todaySessions"
+        binding.streakText.text = getString(R.string.sessions_today, todaySessions)
+        val tintColor = if (todaySessions >= 1) R.color.break_primary else R.color.text_secondary
+        binding.checkIcon.setColorFilter(getColor(tintColor))
     }
 
     private fun saveStreak() {
@@ -246,6 +285,22 @@ class MainActivity : AppCompatActivity() {
     private fun loadTaskName() {
         val taskName = prefs.getString(Constants.KEY_TASK_NAME, "")
         binding.taskNameInput.setText(taskName)
+    }
+
+    private fun showRandomQuote() {
+        val quote = MotivationalQuotes.getRandom()
+        binding.quoteText.text = "\u201C${quote.text}\u201D"
+        binding.quoteAuthor.text = "\u2014 ${quote.author}"
+        binding.quoteText.visibility = View.VISIBLE
+        binding.quoteAuthor.visibility = View.VISIBLE
+        binding.statusText.visibility = View.GONE
+    }
+
+    private fun showStatus(text: String) {
+        binding.statusText.text = text
+        binding.statusText.visibility = View.VISIBLE
+        binding.quoteText.visibility = View.GONE
+        binding.quoteAuthor.visibility = View.GONE
     }
 
     override fun onDestroy() {

@@ -23,7 +23,14 @@ class BreakActivity : AppCompatActivity() {
             finish()  // Manual return triggers Main's onResume reset
         }
 
+        showQuote()
         startBreakTimer()
+    }
+
+    private fun showQuote() {
+        val quote = MotivationalQuotes.getRandom()
+        binding.breakQuoteText.text = "\u201C${quote.text}\u201D"
+        binding.breakQuoteAuthor.text = "\u2014 ${quote.author}"
     }
 
     private fun startBreakTimer() {
