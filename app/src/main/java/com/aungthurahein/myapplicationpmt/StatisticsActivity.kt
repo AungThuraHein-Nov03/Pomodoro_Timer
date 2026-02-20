@@ -80,7 +80,7 @@ class StatisticsActivity : AppCompatActivity() {
                 text = zoned.toLocalDate().format(dateFormatter)
                 setTextColor(getColor(R.color.text_primary))
                 textSize = 13f
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.1f)
             }
 
             val timeText = TextView(this).apply {
@@ -88,6 +88,13 @@ class StatisticsActivity : AppCompatActivity() {
                 setTextColor(getColor(R.color.text_secondary))
                 textSize = 13f
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            val durationText = TextView(this).apply {
+                text = formatDuration(session.durationMinutes)
+                setTextColor(getColor(R.color.text_secondary))
+                textSize = 13f
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f)
             }
 
             val taskText = TextView(this).apply {
@@ -101,6 +108,7 @@ class StatisticsActivity : AppCompatActivity() {
 
             row.addView(dateText)
             row.addView(timeText)
+            row.addView(durationText)
             row.addView(taskText)
             container.addView(row)
 
@@ -117,5 +125,11 @@ class StatisticsActivity : AppCompatActivity() {
                 container.addView(divider)
             }
         }
+    }
+
+    private fun formatDuration(durationMinutes: Int): String {
+        val hours = durationMinutes / 60
+        val minutes = durationMinutes % 60
+        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 }

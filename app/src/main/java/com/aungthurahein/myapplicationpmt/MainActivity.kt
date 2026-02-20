@@ -6,8 +6,6 @@ import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -38,13 +36,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupInputFields()
         setupButtons()
         
         prefs = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
         dbHelper = SessionDatabaseHelper(this)
         loadStreak()
-        loadTaskName()
         updateDisplay()
         showRandomQuote()
     }
@@ -102,18 +98,13 @@ class MainActivity : AppCompatActivity() {
         updateSettingsSummary()
     }
 
-    private fun setupInputFields() {
-        binding.taskNameInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                saveTaskName(s.toString())
-            }
-        })
-    }
-
     override fun onResume() {
         super.onResume()
+
+        if (!isRunning && binding.taskNameInput.text?.isNotEmpty() == true) {
+            binding.taskNameInput.text?.clear()
+        }
+
         // Force reset to work mode if returning from break (and not running)
         if (!isRunning && !isWorkSession) {
             isWorkSession = true
@@ -276,15 +267,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveStreak() {
         prefs.edit().putInt(Constants.KEY_SESSIONS_TODAY, todaySessions).apply()
-    }
-
-    private fun saveTaskName(taskName: String) {
-        prefs.edit().putString(Constants.KEY_TASK_NAME, taskName).apply()
-    }
-
-    private fun loadTaskName() {
-        val taskName = prefs.getString(Constants.KEY_TASK_NAME, "")
-        binding.taskNameInput.setText(taskName)
     }
 
     private fun showRandomQuote() {

@@ -51,7 +51,7 @@ A productivity-focused Pomodoro Timer Android application built with Kotlin. Fea
 | Detail           | Value                                  |
 |------------------|----------------------------------------|
 | Language         | Kotlin                                 |
-| Min SDK          | 26 (Android 8.0 Oreo)                 |
+| Min SDK          | 26 (Android 8.0 Oreo)                  |
 | Target SDK       | 36                                     |
 | Application ID   | `com.aungthurahein.myapplicationpmt`   |
 | Build System     | Gradle with Kotlin DSL                 |
@@ -71,7 +71,7 @@ A productivity-focused Pomodoro Timer Android application built with Kotlin. Fea
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/AungThuraHein-Nov03/Pomodoro_Timerl
+git clone https://github.com/AungThuraHein-Nov03/Pomodoro_Timer
 cd MyApplicationPMT
 ```
 

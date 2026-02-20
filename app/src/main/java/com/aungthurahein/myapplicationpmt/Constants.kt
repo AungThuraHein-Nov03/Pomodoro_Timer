@@ -22,7 +22,6 @@ object Constants {
 
     // SharedPreferences Keys
     const val PREFS_NAME = "pomodoro_prefs"
-    const val KEY_TASK_NAME = "task_name"
     const val KEY_LAST_DATE = "last_date"
     const val KEY_SESSIONS_TODAY = "sessions_today"
 
