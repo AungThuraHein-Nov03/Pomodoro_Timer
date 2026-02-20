@@ -100,6 +100,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadStreak()
 
         if (!isRunning && binding.taskNameInput.text?.isNotEmpty() == true) {
             binding.taskNameInput.text?.clear()
@@ -142,9 +143,6 @@ class MainActivity : AppCompatActivity() {
 
                 if (isWorkSession) {
                     workCount++
-                    todaySessions++
-                    updateStreakDisplay()
-                    saveStreak()
 
                     val taskName = binding.taskNameInput.text.toString().trim()
                     val durationMinutes = (workSeconds / 60).toInt()
@@ -156,6 +154,7 @@ class MainActivity : AppCompatActivity() {
                             durationMinutes = durationMinutes
                         )
                     )
+                    loadStreak()
                 }
 
                 isWorkSession = !isWorkSession
@@ -249,13 +248,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadStreak() {
         val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val savedDate = prefs.getString(Constants.KEY_LAST_DATE, "")
-        if (savedDate != today) {
-            todaySessions = 0
-            prefs.edit().putString(Constants.KEY_LAST_DATE, today).apply()
-        } else {
-            todaySessions = prefs.getInt(Constants.KEY_SESSIONS_TODAY, 0)
-        }
+        todaySessions = dbHelper.getSessionsForDate(today)
         updateStreakDisplay()
     }
 
@@ -266,7 +259,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveStreak() {
-        prefs.edit().putInt(Constants.KEY_SESSIONS_TODAY, todaySessions).apply()
+        // Session count is now derived from the database, no SharedPreferences save needed
     }
 
     private fun showRandomQuote() {
