@@ -247,6 +247,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadStreak() {
+        workCount = todaySessions.toLong()
         val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         todaySessions = dbHelper.getSessionsForDate(today)
         updateStreakDisplay()
