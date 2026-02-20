@@ -250,6 +250,7 @@ class MainActivity : AppCompatActivity() {
         workCount = todaySessions.toLong()
         val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         todaySessions = dbHelper.getSessionsForDate(today)
+        workCount = todaySessions.toLong()
         updateStreakDisplay()
     }
 
