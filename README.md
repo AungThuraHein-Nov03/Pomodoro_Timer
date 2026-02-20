@@ -1,4 +1,4 @@
-# CSX4109 Term Project — Pomodoro Timer
+# CSX4109 Term Project — Pomodoro Timer (Demo-mode)
 
 A productivity-focused Pomodoro Timer Android application built with Kotlin. Features customizable work/break presets, a dedicated break screen, and a full Statistics dashboard with charts and task history.
 
