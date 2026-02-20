@@ -84,7 +84,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="0h 0m"
+                        android:text="0s"
                         android:textColor="@color/text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -217,7 +217,7 @@
                         android:id="@+id/avgDailyValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0m"
+                        android:text="0s"
                         android:textColor="@color/pomodoro_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />

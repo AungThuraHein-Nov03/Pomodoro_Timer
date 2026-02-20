@@ -23,10 +23,10 @@ class MainActivity : AppCompatActivity() {
     private var timer: CountDownTimer? = null
     private var isRunning = false
     private var isWorkSession = true
-    private var workSeconds = Constants.minutesToSeconds(Constants.DEFAULT_WORK_MINUTES)
-    private var shortBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
-    private var longBreakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_LONG_BREAK_MINUTES)
-    private var breakSeconds = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
+    private var workSeconds = Constants.DEFAULT_WORK_SECONDS
+    private var shortBreakSeconds = Constants.DEFAULT_SHORT_BREAK_SECONDS
+    private var longBreakSeconds = Constants.DEFAULT_LONG_BREAK_SECONDS
+    private var breakSeconds = Constants.DEFAULT_SHORT_BREAK_SECONDS
     private var remainingSeconds = 0L
     private var workCount = 0L
     private var todaySessions = 0
@@ -75,17 +75,15 @@ class MainActivity : AppCompatActivity() {
         binding.presetBreakLong.setOnClickListener { applyBreakPreset(15L) }
     }
     
-    private fun applyWorkPreset(minutes: Long) {
-        if (minutes < Constants.MIN_WORK_MINUTES || minutes > Constants.MAX_WORK_MINUTES) return
-        workSeconds = Constants.minutesToSeconds(minutes)
-        Toast.makeText(this, getString(R.string.work_time_set, minutes.toInt()), Toast.LENGTH_SHORT).show()
+    private fun applyWorkPreset(seconds: Long) {
+        workSeconds = seconds
+        Toast.makeText(this, getString(R.string.work_time_set, seconds.toInt()), Toast.LENGTH_SHORT).show()
         if (!isRunning && isWorkSession) updateDisplay()
     }
     
-    private fun applyBreakPreset(minutes: Long) {
-        if (minutes < Constants.MIN_BREAK_MINUTES || minutes > Constants.MAX_BREAK_MINUTES) return
-        shortBreakSeconds = Constants.minutesToSeconds(minutes)
-        Toast.makeText(this, getString(R.string.break_time_set, minutes.toInt()), Toast.LENGTH_SHORT).show()
+    private fun applyBreakPreset(seconds: Long) {
+        shortBreakSeconds = seconds
+        Toast.makeText(this, getString(R.string.break_time_set, seconds.toInt()), Toast.LENGTH_SHORT).show()
         
         if (workCount % Constants.SESSIONS_FOR_LONG_BREAK != 0L) {
             breakSeconds = shortBreakSeconds
@@ -100,6 +98,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadStreak()
 
         if (!isRunning && binding.taskNameInput.text?.isNotEmpty() == true) {
             binding.taskNameInput.text?.clear()
@@ -142,20 +141,18 @@ class MainActivity : AppCompatActivity() {
 
                 if (isWorkSession) {
                     workCount++
-                    todaySessions++
-                    updateStreakDisplay()
-                    saveStreak()
 
                     val taskName = binding.taskNameInput.text.toString().trim()
-                    val durationMinutes = (workSeconds / 60).toInt()
+                    val durationSeconds = workSeconds.toInt()
                     val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                     dbHelper.insertSession(
                         SessionRecord(
                             date = today,
                             taskName = taskName.ifEmpty { getString(R.string.default_task_name) },
-                            durationMinutes = durationMinutes
+                            durationMinutes = durationSeconds
                         )
                     )
+                    loadStreak()
                 }
 
                 isWorkSession = !isWorkSession
@@ -242,20 +239,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateSettingsSummary() {
-        val workMins = workSeconds / 60
-        val breakMins = shortBreakSeconds / 60
-        showStatus(getString(R.string.settings_summary, workMins, breakMins))
+        val workSecs = workSeconds
+        val breakSecs = shortBreakSeconds
+        showStatus(getString(R.string.settings_summary, workSecs, breakSecs))
     }
 
     private fun loadStreak() {
         val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val savedDate = prefs.getString(Constants.KEY_LAST_DATE, "")
-        if (savedDate != today) {
-            todaySessions = 0
-            prefs.edit().putString(Constants.KEY_LAST_DATE, today).apply()
-        } else {
-            todaySessions = prefs.getInt(Constants.KEY_SESSIONS_TODAY, 0)
-        }
+        todaySessions = dbHelper.getSessionsForDate(today)
+        workCount = todaySessions.toLong()
         updateStreakDisplay()
     }
 
@@ -266,7 +258,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveStreak() {
-        prefs.edit().putInt(Constants.KEY_SESSIONS_TODAY, todaySessions).apply()
+        // Session count is now derived from the database, no SharedPreferences save needed
     }
 
     private fun showRandomQuote() {

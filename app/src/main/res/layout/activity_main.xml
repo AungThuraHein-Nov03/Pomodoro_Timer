@@ -281,7 +281,7 @@
                     android:minWidth="0dp"
                     android:paddingTop="0dp"
                     android:paddingBottom="0dp"
-                    android:text="15m"
+                    android:text="15s"
                     android:textColor="@color/pomodoro_primary"
                     android:textSize="12sp"
                     app:strokeColor="@color/pomodoro_primary" />
@@ -295,7 +295,7 @@
                     android:minWidth="0dp"
                     android:paddingTop="0dp"
                     android:paddingBottom="0dp"
-                    android:text="25m"
+                    android:text="25s"
                     android:textColor="@color/pomodoro_primary"
                     android:textSize="12sp"
                     app:strokeColor="@color/pomodoro_primary" />
@@ -309,7 +309,7 @@
                     android:minWidth="0dp"
                     android:paddingTop="0dp"
                     android:paddingBottom="0dp"
-                    android:text="45m"
+                    android:text="45s"
                     android:textColor="@color/pomodoro_primary"
                     android:textSize="12sp"
                     app:strokeColor="@color/pomodoro_primary" />
@@ -322,7 +322,7 @@
                     android:minWidth="0dp"
                     android:paddingTop="0dp"
                     android:paddingBottom="0dp"
-                    android:text="90m"
+                    android:text="90s"
                     android:textColor="@color/pomodoro_primary"
                     android:textSize="12sp"
                     app:strokeColor="@color/pomodoro_primary" />
@@ -353,7 +353,7 @@
                 android:minWidth="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
-                android:text="5m"
+                android:text="5s"
                 android:textColor="@color/break_primary"
                 android:textSize="12sp"
                 app:strokeColor="@color/break_primary" />
@@ -366,7 +366,7 @@
                 android:minWidth="0dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
-                android:text="15m"
+                android:text="15s"
                 android:textColor="@color/break_primary"
                 android:textSize="12sp"
                 app:strokeColor="@color/break_primary" />

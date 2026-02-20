@@ -10,14 +10,14 @@ class BreakActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBreakBinding
     private var breakTimer: CountDownTimer? = null
-    private var breakSeconds: Long = Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES)
+    private var breakSeconds: Long = Constants.DEFAULT_SHORT_BREAK_SECONDS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityBreakBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        breakSeconds = intent.getLongExtra("break_seconds", Constants.minutesToSeconds(Constants.DEFAULT_SHORT_BREAK_MINUTES))
+        breakSeconds = intent.getLongExtra("break_seconds", Constants.DEFAULT_SHORT_BREAK_SECONDS)
 
         binding.backToWorkButton.setOnClickListener {
             finish()  // Manual return triggers Main's onResume reset

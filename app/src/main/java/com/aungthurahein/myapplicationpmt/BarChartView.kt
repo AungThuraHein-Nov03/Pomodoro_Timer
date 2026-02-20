@@ -80,7 +80,7 @@ class BarChartView @JvmOverloads constructor(
                 canvas.drawRoundRect(barRect, barRadius, barRadius, barPaint)
 
                 canvas.drawText(
-                    "${value}m",
+                    "${value}s",
                     centerX,
                     barTop - 8f,
                     valuePaint

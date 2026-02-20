@@ -28,7 +28,7 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     private fun loadStatistics() {
-        val totalMinutes = dbHelper.getTotalWorkMinutes()
+        val totalSeconds = dbHelper.getTotalWorkMinutes()
         val totalSessions = dbHelper.getTotalSessions()
         val bestStreak = dbHelper.getBestStreakDays()
         val currentStreak = dbHelper.getCurrentStreak()
@@ -40,13 +40,13 @@ class StatisticsActivity : AppCompatActivity() {
             binding.emptyStateText.visibility = View.VISIBLE
         }
 
-        val hours = totalMinutes / 60
-        val mins = totalMinutes % 60
-        binding.totalTimeValue.text = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
+        val mins = totalSeconds / 60
+        val secs = totalSeconds % 60
+        binding.totalTimeValue.text = if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
         binding.totalSessionsValue.text = totalSessions.toString()
         binding.bestStreakValue.text = "$bestStreak day${if (bestStreak != 1) "s" else ""}"
         binding.currentStreakValue.text = "$currentStreak day${if (currentStreak != 1) "s" else ""}"
-        binding.avgDailyValue.text = "${avgDaily}m"
+        binding.avgDailyValue.text = "${avgDaily}s"
 
         binding.dailyChart.setData(dailyData)
 
@@ -127,9 +127,9 @@ class StatisticsActivity : AppCompatActivity() {
         }
     }
 
-    private fun formatDuration(durationMinutes: Int): String {
-        val hours = durationMinutes / 60
-        val minutes = durationMinutes % 60
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+    private fun formatDuration(durationSeconds: Int): String {
+        val mins = durationSeconds / 60
+        val secs = durationSeconds % 60
+        return if (mins > 0) "${mins}m ${secs}s" else "${secs}s"
     }
 }

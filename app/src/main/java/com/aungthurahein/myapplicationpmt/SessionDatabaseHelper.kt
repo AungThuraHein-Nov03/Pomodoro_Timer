@@ -65,6 +65,17 @@ class SessionDatabaseHelper(context: Context) :
         }
     }
 
+    fun getSessionsForDate(date: String): Int {
+        val db = readableDatabase
+        return db.rawQuery(
+            "SELECT COUNT(*) FROM $TABLE_SESSIONS WHERE $COL_DATE = ?",
+            arrayOf(date)
+        ).use { cursor ->
+            cursor.moveToFirst()
+            cursor.getInt(0)
+        }
+    }
+
     fun getDailyMinutes(days: Int): List<Pair<String, Int>> {
         val db = readableDatabase
         val today = LocalDate.now()

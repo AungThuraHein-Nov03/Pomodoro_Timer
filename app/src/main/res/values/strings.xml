@@ -11,11 +11,11 @@
     <string name="timer_zero">00:00</string>
 
     <!-- Presets -->
-    <string name="work_time_set">Work time set to %d minutes</string>
-    <string name="break_time_set">Break time set to %d minutes</string>
+    <string name="work_time_set">Work time set to %d seconds</string>
+    <string name="break_time_set">Break time set to %d seconds</string>
 
     <!-- Settings Summary -->
-    <string name="settings_summary">Work: %1$dm • Break: %2$dm</string>
+    <string name="settings_summary">Work: %1$ds • Break: %2$ds</string>
 
     <!-- Sessions -->
     <string name="sessions_today">Sessions today: %d</string>
