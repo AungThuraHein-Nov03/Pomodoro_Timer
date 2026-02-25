@@ -25,7 +25,7 @@ object Constants {
     const val KEY_LAST_DATE = "last_date"
     const val KEY_SESSIONS_TODAY = "sessions_today"
 
-    // Error Messages
+    // Error Messages (No longer used)
     const val ERROR_INVALID_WORK_TIME = "Please enter a time between 1-120 minutes"
     const val ERROR_INVALID_BREAK_TIME = "Please enter a time between 1-60 minutes"
     
